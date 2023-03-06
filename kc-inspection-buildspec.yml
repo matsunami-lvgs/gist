@@ -1,0 +1,72 @@
+version: 0.2
+
+env:
+  parameter-store:
+    gh_ssh_key: "gh_ssh_key"
+
+phases:
+  install:
+    commands:
+      - yum -y install epel-release
+      - yum -y install jq
+  pre_build:
+    commands:
+      - CLUSTER_NAME=dev-kc
+      - PORT_OFFSET=30000
+      - PORT_LIMIT=1000
+      - PR_NUM=${CODEBUILD_SOURCE_VERSION#*/}
+      - HOST_PORT_NUM=$(($PORT_OFFSET+($PR_NUM%$PORT_LIMIT)))
+      - TASK_ARNS=$(echo `aws ecs list-tasks --cluster $CLUSTER_NAME | jq -r '.taskArns[]'`)
+      - >
+        for ARN in ${TASK_ARNS[@]}; do
+          TASK_DEFINITION_ARN=(`aws ecs describe-tasks --cluster $CLUSTER_NAME --tasks $ARN | jq -r '.tasks[].taskDefinitionArn'`);
+          ENV_PR_NUM=(`aws ecs describe-task-definition --task-definition $TASK_DEFINITION_ARN | jq -r '.taskDefinition.containerDefinitions[].environment|map(select(.["name"] == "pr_num"))|.[].value'`);
+          if [ $ENV_PR_NUM = $PR_NUM ]; then
+            aws ecs stop-task --cluster $CLUSTER_NAME --task $ARN;
+          fi;
+        done
+      - service docker start
+      - cp /root/Dockerfile ./
+      - cat /root/Dockerfile
+      - mkdir -p ~/.ssh
+      - echo "$gh_ssh_key" > ~/.ssh/id_rsa
+      - chmod 600 ~/.ssh/id_rsa
+      - ssh-keyscan github.com >>~/.ssh/known_hosts
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+  build:
+    commands:
+      - echo Build started on `date`
+      - composer install
+      - cd laravel
+      - composer install --prefer-source
+      - chmod 777 -R storage
+      - chmod 777 -R bootstrap/cache
+      - cp .env.test .env
+      - sed -i -e "s/lvm-test.cluster-ckl9b3ogzdn5.ap-northeast-1.rds.amazonaws.com/lvm-development.cluster-ckxl9ccp9oeu.ap-northeast-1.rds.amazonaws.com/" .env
+      - php artisan config:cache
+      - php artisan config:clear
+      - yarn
+      - yarn prod
+      - cd ../
+      - docker build --no-cache -t $IMAGE_REPO_NAME:$PR_NUM .
+      - docker tag $IMAGE_REPO_NAME:$PR_NUM $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$PR_NUM
+      - echo Build completed on `date`
+  post_build:
+    commands:
+      - echo Pushing the Docker iamge...
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$PR_NUM
+      - >
+        aws ecs register-task-definition
+        --family dev-kc
+        --container-definitions "[{\"name\":\"dev-kc\", \"image\": \"$AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-1.amazonaws.com/$IMAGE_REPO_NAME:$PR_NUM\", \"memory\": 512, \"portMappings\": [{\"containerPort\":8000, \"hostPort\": $HOST_PORT_NUM}], \"environment\": [{\"name\": \"pr_num\", \"value\": \"$PR_NUM\"}]}]"
+      - >
+        TASKS_COUNT=(`aws ecs describe-clusters --cluster dev-kc | jq -r '.clusters[].runningTasksCount'`);
+        if [ $TASKS_COUNT -ge 30 ]; then
+          exit 1;
+        else
+          aws ecs run-task --cluster dev-kc --task-definition dev-kc
+        fi
+artifacts:
+  files:
+    - '**/*'
+  name: app-$(date +%Y-%m-%d)
