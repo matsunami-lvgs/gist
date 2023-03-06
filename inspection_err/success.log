@@ -1,0 +1,234 @@
+[Container] 2023/03/01 06:12:23 Waiting for agent ping
+[Container] 2023/03/01 06:12:25 Waiting for DOWNLOAD_SOURCE
+[Container] 2023/03/01 06:12:55 Phase is DOWNLOAD_SOURCE
+[Container] 2023/03/01 06:12:56 CODEBUILD_SRC_DIR=/codebuild/output/src597877025/src/github.com/lvgs/project-KC
+[Container] 2023/03/01 06:12:56 YAML location is /codebuild/readonly/buildspec.yml
+[Container] 2023/03/01 06:12:56 Setting HTTP client timeout to higher timeout for Github and GitHub Enterprise sources
+[Container] 2023/03/01 06:12:56 Processing environment variables
+[Container] 2023/03/01 06:12:56 Decrypting parameter store environment variables
+[Container] 2023/03/01 06:12:58 Moving to directory /codebuild/output/src597877025/src/github.com/lvgs/project-KC
+[Container] 2023/03/01 06:12:58 Registering with agent
+[Container] 2023/03/01 06:12:58 Phases found in YAML: 4
+[Container] 2023/03/01 06:12:58  INSTALL: 2 commands
+[Container] 2023/03/01 06:12:58  PRE_BUILD: 15 commands
+[Container] 2023/03/01 06:12:58  BUILD: 16 commands
+[Container] 2023/03/01 06:12:58  POST_BUILD: 4 commands
+[Container] 2023/03/01 06:12:58 Phase complete: DOWNLOAD_SOURCE State: SUCCEEDED
+[Container] 2023/03/01 06:12:58 Phase context status code:  Message: 
+[Container] 2023/03/01 06:12:59 Entering phase INSTALL
+[Container] 2023/03/01 06:12:59 Running command yum -y install epel-release
+Loaded plugins: ovl, priorities
+Repodata is over 2 weeks old. Install yum-cron? Or run: yum makecache fast
+http://remi.mirrors.arminco.com/enterprise/6/safe/x86_64/repodata/repomd.xml: [Errno 12] Timeout on http://remi.mirrors.arminco.com/enterprise/6/safe/x86_64/repodata/repomd.xml: (28, 'Connection timed out after 5000 milliseconds')
+Trying other mirror.
+1851 packages excluded due to repository priority protections
+Package epel-release-6-8.9.amzn1.noarch already installed and latest version
+Nothing to do
+
+[Container] 2023/03/01 06:13:10 Running command yum -y install jq
+Loaded plugins: ovl, priorities
+1851 packages excluded due to repository priority protections
+Resolving Dependencies
+--> Running transaction check
+---> Package jq.x86_64 0:1.5-1.2.amzn1 will be installed
+--> Processing Dependency: jq-libs(x86-64) = 1.5-1.2.amzn1 for package: jq-1.5-1.2.amzn1.x86_64
+--> Processing Dependency: oniguruma for package: jq-1.5-1.2.amzn1.x86_64
+--> Processing Dependency: libonig.so.2()(64bit) for package: jq-1.5-1.2.amzn1.x86_64
+--> Processing Dependency: libjq.so.1()(64bit) for package: jq-1.5-1.2.amzn1.x86_64
+--> Running transaction check
+---> Package jq-libs.x86_64 0:1.5-1.2.amzn1 will be installed
+---> Package oniguruma.x86_64 0:5.9.6-4.4.amzn1 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================
+ Package         Arch         Version                  Repository          Size
+================================================================================
+Installing:
+ jq              x86_64       1.5-1.2.amzn1            amzn-main           44 k
+Installing for dependencies:
+ jq-libs         x86_64       1.5-1.2.amzn1            amzn-main          121 k
+ oniguruma       x86_64       5.9.6-4.4.amzn1          amzn-updates       153 k
+
+Transaction Summary
+================================================================================
+Install  1 Package (+2 Dependent packages)
+
+Total download size: 317 k
+Installed size: 888 k
+Downloading packages:
+--------------------------------------------------------------------------------
+Total                                              528 kB/s | 317 kB  00:00     
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : oniguruma-5.9.6-4.4.amzn1.x86_64                             1/3 
+  Installing : jq-libs-1.5-1.2.amzn1.x86_64                                 2/3 
+  Installing : jq-1.5-1.2.amzn1.x86_64                                      3/3 
+  Verifying  : oniguruma-5.9.6-4.4.amzn1.x86_64                             1/3 
+  Verifying  : jq-1.5-1.2.amzn1.x86_64                                      2/3 
+  Verifying  : jq-libs-1.5-1.2.amzn1.x86_64                                 3/3 
+
+Installed:
+  jq.x86_64 0:1.5-1.2.amzn1                                                     
+
+Dependency Installed:
+  jq-libs.x86_64 0:1.5-1.2.amzn1       oniguruma.x86_64 0:5.9.6-4.4.amzn1      
+
+Complete!
+
+[Container] 2023/03/01 06:13:11 Phase complete: INSTALL State: SUCCEEDED
+[Container] 2023/03/01 06:13:11 Phase context status code:  Message: 
+[Container] 2023/03/01 06:13:11 Entering phase PRE_BUILD
+[Container] 2023/03/01 06:13:11 Running command CLUSTER_NAME=dev-kc
+
+[Container] 2023/03/01 06:13:11 Running command PORT_OFFSET=30000
+
+[Container] 2023/03/01 06:13:11 Running command PORT_LIMIT=1000
+
+[Container] 2023/03/01 06:13:11 Running command PR_NUM=${CODEBUILD_SOURCE_VERSION#*/}
+
+[Container] 2023/03/01 06:13:11 Running command HOST_PORT_NUM=$(($PORT_OFFSET+($PR_NUM%$PORT_LIMIT)))
+
+[Container] 2023/03/01 06:13:11 Running command TASK_ARNS=$(echo `aws ecs list-tasks --cluster $CLUSTER_NAME | jq -r '.taskArns[]'`)
+
+[Container] 2023/03/01 06:13:12 Running command for ARN in ${TASK_ARNS[@]}; do
+  TASK_DEFINITION_ARN=(`aws ecs describe-tasks --cluster $CLUSTER_NAME --tasks $ARN | jq -r '.tasks[].taskDefinitionArn'`);
+  ENV_PR_NUM=(`aws ecs describe-task-definition --task-definition $TASK_DEFINITION_ARN | jq -r '.taskDefinition.containerDefinitions[].environment|map(select(.["name"] == "pr_num"))|.[].value'`);
+  if [ $ENV_PR_NUM = $PR_NUM ]; then
+    aws ecs stop-task --cluster $CLUSTER_NAME --task $ARN;
+  fi;
+done
+
+{
+    "task": {
+        "launchType": "EC2", 
+        "attachments": [], 
+        "stoppingAt": 1677651194.345, 
+        "clusterArn": "arn:aws:ecs:ap-northeast-1:629161861290:cluster/dev-kc", 
+        "desiredStatus": "STOPPED", 
+        "createdAt": 1677472811.338, 
+        "taskArn": "arn:aws:ecs:ap-northeast-1:629161861290:task/dev-kc/548b519a73614004bc3dc8028262435d", 
+        "group": "family:dev-kc", 
+        "containerInstanceArn": "arn:aws:ecs:ap-northeast-1:629161861290:container-instance/dev-kc/575c9cdc02fe4bceacdebc7d664e0af3", 
+        "pullStartedAt": 1677472813.847, 
+        "version": 3, 
+        "memory": "512", 
+        "connectivityAt": 1677472811.338, 
+        "startedAt": 1677472882.454, 
+        "taskDefinitionArn": "arn:aws:ecs:ap-northeast-1:629161861290:task-definition/dev-kc:4509", 
+        "containers": [
+            {
+                "containerArn": "arn:aws:ecs:ap-northeast-1:629161861290:container/dev-kc/548b519a73614004bc3dc8028262435d/84cf8b0d-a4a6-4d39-ab31-e11d812c4369", 
+                "taskArn": "arn:aws:ecs:ap-northeast-1:629161861290:task/dev-kc/548b519a73614004bc3dc8028262435d", 
+                "name": "dev-kc", 
+                "networkBindings": [
+                    {
+                        "protocol": "tcp", 
+                        "bindIP": "0.0.0.0", 
+                        "containerPort": 8000, 
+                        "hostPort": 30502
+                    }
+                ], 
+                "lastStatus": "RUNNING", 
+                "image": "629161861290.dkr.ecr.ap-northeast-1.amazonaws.com/project-kc-dev:5502", 
+                "imageDigest": "sha256:eb2b80ea45d812bbab7e71916b975e6e215882b7d4e748c2427606374e942c15", 
+                "memory": "512", 
+                "runtimeId": "261c177b3967c8b91e2512dd826cc50d822c19cd0d522691ff9c798543b9b15f", 
+                "cpu": "0", 
+                "networkInterfaces": []
+            }
+        ], 
+        "availabilityZone": "ap-northeast-1a", 
+        "tags": [], 
+        "stopCode": "UserInitiated", 
+        "lastStatus": "RUNNING", 
+        "connectivity": "CONNECTED", 
+        "overrides": {
+            "inferenceAcceleratorOverrides": [], 
+            "containerOverrides": [
+                {
+                    "name": "dev-kc"
+                }
+            ]
+        }, 
+        "pullStoppedAt": 1677472877.613, 
+        "attributes": [
+            {
+                "name": "ecs.cpu-architecture", 
+                "value": "x86_64"
+            }
+        ], 
+        "stoppedReason": "Task stopped by user", 
+        "cpu": "0"
+    }
+}
+
+[Container] 2023/03/01 06:13:16 Running command service docker start
+Starting cgconfig service: /sbin/cgconfigparser; error loading /etc/cgconfig.conf: Cgroup mounting failed
+Error: cannot mount cpu to /cgroup/cpu: Device or resource busy
+Failed to parse /etc/cgconfig.conf[FAILED]
+Starting docker:	.[  OK  ]
+
+[Container] 2023/03/01 06:13:17 Running command cp /root/Dockerfile ./
+
+[Container] 2023/03/01 06:13:17 Running command cat /root/Dockerfile
+FROM 629161861290.dkr.ecr.ap-northeast-1.amazonaws.com/inspection-kc:latest 
+RUN echo "memory_limit = 256M" >> /usr/local/etc/php/php.ini 
+RUN apt-get update && apt-get install -y zlib1g-dev libpq-dev iputils-ping net-tools git
+RUN docker-php-ext-install pdo_pgsql pgsql mbstring 
+RUN pecl install redis-5.2.2 && docker-php-ext-enable redis 
+ADD . /www/project-KC/current 
+CMD ["bash", "-c", "cd /www/project-KC/current/laravel && php artisan serve --host 0.0.0.0"]
+
+[Container] 2023/03/01 06:13:17 Running command mkdir -p ~/.ssh
+
+[Container] 2023/03/01 06:13:17 Running command echo "$gh_ssh_key" > ~/.ssh/id_rsa
+
+[Container] 2023/03/01 06:13:17 Running command chmod 600 ~/.ssh/id_rsa
+
+[Container] 2023/03/01 06:13:17 Running command ssh-keyscan github.com >>~/.ssh/known_hosts
+# github.com:22 SSH-2.0-babeld-2fb663a1
+# github.com:22 SSH-2.0-babeld-2fb663a1
+# github.com:22 SSH-2.0-babeld-2fb663a1
+
+[Container] 2023/03/01 06:13:19 Running command $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+WARNING! Using --password via the CLI is insecure. Use --password-stdin.
+WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Login Succeeded
+
+[Container] 2023/03/01 06:13:20 Phase complete: PRE_BUILD State: SUCCEEDED
+[Container] 2023/03/01 06:13:20 Phase context status code:  Message: 
+[Container] 2023/03/01 06:13:20 Entering phase BUILD
+[Container] 2023/03/01 06:13:20 Running command echo Build started on `date`
+Build started on Wed Mar 1 06:13:20 UTC 2023
+
+[Container] 2023/03/01 06:13:20 Running command composer install
+Loading composer repositories with package information
+Installing dependencies (including require-dev) from lock file
+Package operations: 8 installs, 0 updates, 0 removals
+As there is no 'unzip' command installed zip files are being unpacked using the PHP zip extension.
+This may cause invalid reports of corrupted archives. Besides, any UNIX permissions (e.g. executable) defined in the archives will be lost.
+Installing 'unzip' may remediate them.
+  - Installing squizlabs/php_codesniffer (2.9.1): Downloading (connecting...)Downloading (0%)           Downloading (5%)Downloading (10%)Downloading (15%)Downloading (20%)Downloading (25%)Downloading (30%)Downloading (35%)Downloading (40%)Downloading (45%)Downloading (50%)Downloading (55%)Downloading (60%)Downloading (65%)Downloading (70%)Downloading (75%)Downloading (80%)Downloading (85%)Downloading (90%)Downloading (95%)Downloading (100%)
+  - Installing symfony/filesystem (v3.3.9): Downloading (connecting...)Downloading (100%)         
+  - Installing psr/container (1.0.0): Downloading (connecting...)Downloading (0%)           Downloading (75%)Downloading (100%)
+  - Installing symfony/dependency-injection (v3.3.9): Downloading (connecting...)Downloading (100%)         
+  - Installing symfony/config (v3.3.9): Downloading (connecting...)Downloading (100%)         
+  - Installing pdepend/pdepend (2.5.0): Downloading (connecting...)Downloading (100%)         
+  - Installing phpmd/phpmd (2.6.0): Downloading (connecting...)Downloading (100%)         
+  - Installing lvgs/tool-git-hooks (dev-master 2bf7a88): Cloning 2bf7a88150 from cache
+symfony/dependency-injection suggests installing symfony/expression-language (For using expressions in service container configuration)
+symfony/dependency-injection suggests installing symfony/finder (For using double-star glob patterns or when GLOB_BRACE portability is required)
+symfony/dependency-injection suggests installing symfony/proxy-manager-bridge (Generate service proxies to lazy load them)
+symfony/dependency-injection suggests installing symfony/yaml
+symfony/config suggests installing symfony/yaml (To use the yaml reference dumper)
+Generating autoload files
+> if [ -e ./setup.sh ]; then /bin/bash setup.sh && rm ./setup.sh ./helper.sh && git rm ./setup.sh ./helper.sh && git commit -m "Delete setup script."; fi
+
+[Container] 2023/03/01 06:13:26 Running command cd laravel
